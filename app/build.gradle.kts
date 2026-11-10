@@ -360,6 +360,10 @@ android {
     namespace = "com.ai.assistance.operit"
     compileSdk = 36
 
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
+
     sourceSets {
         getByName("main") {
             assets.setSrcDirs(listOf(generatedMainAssetsDir.get().asFile))
