@@ -7509,4 +7509,5 @@ Agora é possível usar o modo AutoGLM na interface de diálogo.</string>
     <string name="token_activity_chart_tap_hint">Toque no gráfico para ver dados detalhados</string>
     <string name="token_activity_total_tokens">Tokens acumulados</string>
     <string name="token_activity_peak_tokens">Pico de tokens</string>
+    <string name="follow_chat_model_for_all_functions">Usar o modelo de chat atual para todas as funções</string>
 </resources>

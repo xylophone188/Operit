@@ -8347,4 +8347,5 @@ Acum poate fi utilizat în interfața de dialog AutoGLM A devenit un model.</str
     <string name="token_stats_trends">Analiza tendințelor</string>
     <string name="token_stats_settings">Setări statistici</string>
     <string name="token_stats_custom_range_confirm">OK</string>
+    <string name="follow_chat_model_for_all_functions">Folosește modelul de chat curent pentru toate funcțiile</string>
 </resources>

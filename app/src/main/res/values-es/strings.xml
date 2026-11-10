@@ -7820,4 +7820,5 @@ Ahora puede usar el modo AutoGLM en la interfaz de conversación.</string>
     <string name="token_stats_trends">Análisis de tendencias</string>
     <string name="token_stats_settings">Configuración de estadísticas</string>
     <string name="token_stats_custom_range_confirm">Aceptar</string>
+    <string name="follow_chat_model_for_all_functions">Usar el modelo de chat actual para todas las funciones</string>
 </resources>

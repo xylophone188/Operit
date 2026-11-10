@@ -7518,4 +7518,5 @@
     <string name="token_activity_chart_tap_hint">차트를 탭하여 자세한 데이터 보기</string>
     <string name="token_activity_total_tokens">누적 토큰</string>
     <string name="token_activity_peak_tokens">최대 토큰</string>
+    <string name="follow_chat_model_for_all_functions">모든 기능에 현재 채팅 모델 사용</string>
 </resources>
