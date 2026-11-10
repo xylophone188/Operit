@@ -15,6 +15,19 @@ import org.junit.Test
  * opened by the message right before its run. See issue #1027.
  */
 class StructuredToolCallBridgeHistoryTest {
+    private var priorSystemLog = true
+    private var priorFileLog = true
+    @org.junit.Before fun silenceAndroidLog() {
+        priorSystemLog = com.ai.assistance.operit.util.AppLogger.enableSystemLog
+        priorFileLog = com.ai.assistance.operit.util.AppLogger.enableFileLogging
+        com.ai.assistance.operit.util.AppLogger.enableSystemLog = false
+        com.ai.assistance.operit.util.AppLogger.enableFileLogging = false
+    }
+    @org.junit.After fun restoreAndroidLog() {
+        com.ai.assistance.operit.util.AppLogger.enableSystemLog = priorSystemLog
+        com.ai.assistance.operit.util.AppLogger.enableFileLogging = priorFileLog
+    }
+
 
     @Test
     fun `unanswered calls are closed before the trailing tool result text`() {

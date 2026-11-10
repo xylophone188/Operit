@@ -1,0 +1,86 @@
+{
+  "task_id": "operit-cross-device-20261110-1330",
+  "baseline": "dbf71916fae9750cfdc9f9a774f5a0fee56633fb",
+  "upstreams": [
+    {
+      "name": "Operit",
+      "commit": "dbf71916fae9750cfdc9f9a774f5a0fee56633fb"
+    },
+    {
+      "name": "OperitTerminalCore",
+      "commit": "045868988e4091d613cb34b2941057703899b96e"
+    },
+    {
+      "name": "OmniRoute",
+      "source_manifest_commit": "0d52d5fa252841aeef34d4d063b1766a59612bf7",
+      "git_checkout": false
+    },
+    {
+      "name": "agy-unified",
+      "git_checkout": false,
+      "files": [
+        {
+          "path": "bin/agy-acp",
+          "sha256": "53edea5405837da37858c0ba367a140f0bd21c52207cf5c0a9328f76c477fcf7"
+        },
+        {
+          "path": "bin/agy-mcp",
+          "sha256": "2b1c8ac74b52da6f039c0fc9e7d512b02f057736d847fe4738be97e71cf99bcb"
+        },
+        {
+          "path": "bin/ask-agy",
+          "sha256": "f0cae59bd3a542b9b29cf24feedb270e5f5f96db5ba4643f41055ad7b3ebbed7"
+        },
+        {
+          "path": "gateway/server.mjs",
+          "sha256": "5daa1ce4b752028431d74ff72b1f7d16d72a22ea38c4ecfaa31c2c98407c6b3c"
+        },
+        {
+          "path": "lib/agy-acp.mjs",
+          "sha256": "753332048ff3e7b9d97b0d5b2f7368f3ec98923291d4b726bb251c13f434b734"
+        },
+        {
+          "path": "lib/agy-cli.mjs",
+          "sha256": "d486221e704ecccf143716df8e73a77b21338fa17d51bcd8c3d07de72b32d121"
+        },
+        {
+          "path": "lib/agy-direct.mjs",
+          "sha256": "0d3bf1d5d364b195e2734cf757046d7c6543cce320a07260a2e1d041ba0658c7"
+        },
+        {
+          "path": "lib/agy-translate.mjs",
+          "sha256": "d3619498e4b78f70701a54da85bf65c32022301208f5a2923afda919060fa167"
+        },
+        {
+          "path": "lib/router.mjs",
+          "sha256": "f3203f3ba1282be3736628b4ffec902138a2525b78e99f0099d93baa8ba9d54a"
+        }
+      ]
+    },
+    {
+      "name": "notes-bridge",
+      "commit": "2200a9fc9e09e20f8280dbb556e2ab8588db13b5",
+      "dirty_paths": 2,
+      "used_in_apk": false
+    }
+  ],
+  "native_dependencies": {
+    "sherpa_ncnn-c61e50d61e9fbed5972afa4d95bc560e168affe2-src": "app/src/main/cpp/.cxx/operit_deps/sherpa_ncnn-c61e50d61e9fbed5972afa4d95bc560e168affe2-src",
+    "wamr-ffc22889948b1f063d7258d34d4e636ee0914925-src": "app/src/main/cpp/.cxx/operit_deps/wamr-ffc22889948b1f063d7258d34d4e636ee0914925-src",
+    "ncnn-380f0cd21893c57b0d76b805290bf5f0007dbb55-src": "app/src/main/cpp/.cxx/operit_deps/ncnn-380f0cd21893c57b0d76b805290bf5f0007dbb55-src",
+    "saba-29b8efa8b31c8e746f9a88020fb0ad9dcdcf3332-src": "avator/mmd/.cxx/operit_deps/saba-29b8efa8b31c8e746f9a88020fb0ad9dcdcf3332-src",
+    "bullet3-d3afe76132fc76b0f9b2359cbaef47a3766e7fbb-src": "avator/mmd/.cxx/operit_deps/bullet3-d3afe76132fc76b0f9b2359cbaef47a3766e7fbb-src",
+    "ufbx-5955c5c0b042ac2dc6f32955ab206aaec0620cfc-src": "avator/fbx/.cxx/operit_deps/ufbx-5955c5c0b042ac2dc6f32955ab206aaec0620cfc-src",
+    "dragonbones_cpp-f696143045e07b7c4c4590bdd95534e9e8074b37-src": "avator/dragonbones/.cxx/operit_deps/dragonbones_cpp-f696143045e07b7c4c4590bdd95534e9e8074b37-src",
+    "llama_cpp-720d7fa4097f76e5d0eade5a92c1df87c1faf9d9-src": "llm/llama/.cxx/operit_deps/llama_cpp-720d7fa4097f76e5d0eade5a92c1df87c1faf9d9-src",
+    "kleidiai-fa0a8e861d58451e0a3a0d1588bc0d49bad23743-src": "llm/mnn/.cxx/operit_deps/kleidiai-fa0a8e861d58451e0a3a0d1588bc0d49bad23743-src",
+    "mnn-d407447ed56c4121a11ccbd266dc184ca1ead0c2-src": "llm/mnn/.cxx/operit_deps/mnn-d407447ed56c4121a11ccbd266dc184ca1ead0c2-src"
+  },
+  "missing_requested_asset_paths": [
+    "/home/melody/cloud/source-code/github/ai/OperitAI",
+    "/home/melody/.local/src/agent-runner",
+    "/home/melody/.local/src/agentbox-gateway",
+    "/home/melody/.local/src/alma-dispatch",
+    "/home/melody/.local/src/omniroute-pg"
+  ]
+}

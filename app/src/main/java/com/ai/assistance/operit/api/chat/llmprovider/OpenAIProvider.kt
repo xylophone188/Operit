@@ -1234,7 +1234,9 @@ open class OpenAIProvider(
                                     )
                                 }
 
-                                flushOpenToolCallsAsUnmatched("tool_result_partial_batch")
+                                if (textContent.isNotEmpty()) {
+                                    flushOpenToolCallsAsUnmatched("tool_result_partial_batch")
+                                }
 
                                 if (!useResponsesApi) {
                                     appendReadableImageMessageIfNeeded(

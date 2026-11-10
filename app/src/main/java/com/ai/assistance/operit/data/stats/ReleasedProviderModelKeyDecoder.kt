@@ -16,6 +16,7 @@ internal object ReleasedProviderModelKeyDecoder {
         encoded: String,
         additionalProviderAliases: Map<String, String> = emptyMap(),
     ): ReleasedProviderModelKey {
+        require(encoded !in com.ai.assistance.operit.data.model.FunctionType.entries.map { it.name } && encoded != "FILE_BINDING") { "legacy functional key" }
         val aliases = buildMap {
             putAll(builtInProviderAliases)
             additionalProviderAliases.forEach { (rawAlias, rawIdentity) ->

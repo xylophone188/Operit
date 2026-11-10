@@ -205,7 +205,7 @@ class OpenAiToolCallHistoryTest {
         val placeholder = messages.at(3).getString("content")
         assertEquals(
             StructuredToolCallBridge.unmatchedToolResultContent(
-                "tool_result_partial_batch",
+                "history_end",
                 "second"
             ),
             placeholder
@@ -224,8 +224,8 @@ class OpenAiToolCallHistoryTest {
         val historyEnd =
             StructuredToolCallBridge.unmatchedToolResultContent("history_end", "echo")
 
-        assertEquals("工具结果缺失：read_file 没有匹配到执行结果。这不是用户取消。", partialBatch)
-        assertEquals("工具结果缺失：echo 后续对话历史已到达，但未返回执行结果。这不是用户取消。", historyEnd)
+        assertEquals("工具结果缺失：read_file 没有匹配到执行结果。未获执行确认。", partialBatch)
+        assertEquals("工具结果缺失：echo 后续对话历史已到达，但未返回执行结果。未获执行确认。", historyEnd)
         assertFalse(partialBatch.contains("User cancelled"))
         assertFalse(historyEnd.contains("User cancelled"))
     }

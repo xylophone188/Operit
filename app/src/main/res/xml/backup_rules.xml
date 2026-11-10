@@ -8,4 +8,5 @@
 <full-backup-content>
     <!-- EncryptedSharedPreferences depends on a device-local Android Keystore key. -->
     <exclude domain="sharedpref" path="codex_oauth_credentials.xml" />
+        <exclude domain="sharedpref" path="ecosystem_secrets.xml" />
 </full-backup-content>

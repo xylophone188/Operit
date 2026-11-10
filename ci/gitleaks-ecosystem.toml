@@ -1,0 +1,32 @@
+title = "Operit public artifact credential scan"
+[extend]
+useDefault = true
+
+# Exact non-secret fixture/content matches; no path-wide suppression.
+[[allowlists]]
+description = "Public draw API paths are endpoints, not credentials"
+condition = "AND"
+paths = ['''(?:nanobanana_draw\.(?:js|ts))$''']
+regexTarget = "match"
+regexes = ['''RESULT_API_PATH\s*=\s*["']/v1/draw/result["']''']
+
+[[allowlists]]
+description = "Public embedded game artwork is base64 image data"
+condition = "AND"
+paths = ['''examples/dino_runner/(?:src|dist)/ui/dino_runner/page\.(?:ts|js)$''']
+regexTarget = "match"
+regexes = ['''ARCADE_BONUS_TOKEN_BASE64''']
+
+[[allowlists]]
+description = "Documented external API token placeholders"
+condition = "AND"
+paths = ['''docs/doc-src/feature-protocol/external_(?:http_chat|a2a_server)\.md$''']
+regexTarget = "match"
+regexes = ['''Bearer (?:YOUR_TOKEN|<your_token>|<token>)''']
+
+[[allowlists]]
+description = "Public JM protocol application constant, not a user credential"
+condition = "AND"
+paths = ['''examples/jmcomic\.(?:js|ts)$''']
+regexTarget = "match"
+regexes = ['''APP_DATA_SECRET''']

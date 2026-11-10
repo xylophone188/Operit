@@ -240,16 +240,13 @@ class DeepseekProviderMediaRoleTest {
                 supportsVision = true,
                 enableToolCall = true
             )
-        val body =
-            provider.createRequestBody(
-                context = mock<Context>(),
-                chatHistory = history,
-                modelParameters = emptyList<ModelParameter<*>>(),
-                enableThinking = false,
-                stream = false,
-                availableTools = availableTools,
-                preserveThinkInHistory = false
-            )
+        val method = OpenAIResponsesProvider::class.java.getDeclaredMethod(
+            "createRequestBody", Context::class.java, List::class.java, List::class.java,
+            Boolean::class.javaPrimitiveType, Boolean::class.javaPrimitiveType,
+            List::class.java, Boolean::class.javaPrimitiveType
+        ).apply { isAccessible = true }
+        val body = method.invoke(provider, mock<Context>(), history,
+            emptyList<ModelParameter<*>>(), false, false, availableTools, false) as RequestBody
         val buffer = Buffer()
         body.writeTo(buffer)
         return JSONObject(buffer.readUtf8())

@@ -12,6 +12,19 @@ import org.junit.Test
 import org.json.JSONObject
 
 class GeminiThinkingConfigTest {
+    private var priorSystemLog = true
+    private var priorFileLog = true
+    @org.junit.Before fun silenceAndroidLog() {
+        priorSystemLog = com.ai.assistance.operit.util.AppLogger.enableSystemLog
+        priorFileLog = com.ai.assistance.operit.util.AppLogger.enableFileLogging
+        com.ai.assistance.operit.util.AppLogger.enableSystemLog = false
+        com.ai.assistance.operit.util.AppLogger.enableFileLogging = false
+    }
+    @org.junit.After fun restoreAndroidLog() {
+        com.ai.assistance.operit.util.AppLogger.enableSystemLog = priorSystemLog
+        com.ai.assistance.operit.util.AppLogger.enableFileLogging = priorFileLog
+    }
+
     private val thinkingConfigurations =
         ModelThinkingConfigDefaults.forProvider(ApiProviderType.GOOGLE.name)
 

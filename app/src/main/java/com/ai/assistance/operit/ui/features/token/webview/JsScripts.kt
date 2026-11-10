@@ -72,16 +72,9 @@ object JsScripts {
                             getFromStorage('id_token') ||
                             getFromStorage('access_token');
                 
-                // If no token found in storage, use hardcoded token
                 if (!token) {
-                    token = "trP/KIrtNAMNnQxN1P1YMivruoy0STI5onzNhCdzo8iOM7CObxaGhjg+w+JPm/jC";
-                    console.log('Using hardcoded token');
-                    // Save for future use
-                    try {
-                        localStorage.setItem('auth_token', token);
-                    } catch (e) {
-                        console.error('Failed to store token:', e);
-                    }
+                    Android.onError("NEEDS_CREDENTIALS");
+                    return;
                 }
                 
                 console.log('Token found (length: ' + token.length + ')');
@@ -101,10 +94,10 @@ object JsScripts {
                     return response.text();
                 })
                 .then(text => {
-                    console.log('Raw response:', text.substring(0, 100) + '...');
+                    console.log('Response received');
                     try {
                         const data = JSON.parse(text);
-                        console.log('Received data:', JSON.stringify(data));
+                        console.log('API key response parsed');
                         
                         // 预处理数据，只提取所需的API密钥信息
                         let apiKeys = [];
@@ -184,10 +177,9 @@ object JsScripts {
                             getFromStorage('id_token') ||
                             getFromStorage('access_token');
                 
-                // If no token found in storage, use hardcoded token
                 if (!token) {
-                    token = "trP/KIrtNAMNnQxN1P1YMivruoy0STI5onzNhCdzo8iOM7CObxaGhjg+w+JPm/jC";
-                    console.log('Using hardcoded token');
+                    Android.onError("NEEDS_CREDENTIALS");
+                    return;
                 }
                 
                 fetch('${DeepseekApiConstants.DEEPSEEK_DELETE_API_KEY_URL}', {
@@ -205,7 +197,7 @@ object JsScripts {
                     return response.json();
                 })
                 .then(data => {
-                    console.log('Delete key response data:', JSON.stringify(data));
+                    console.log('Delete key response received');
                     Android.onKeyDeleted(data.code === 0);
                 })
                 .catch(error => {
@@ -224,7 +216,7 @@ object JsScripts {
                 console.log('Trying to extract authorization token from page');
                 
                 // 检查document.cookie
-                console.log('Cookies:', document.cookie);
+                console.log('Cookie values are not logged');
                 
                 // 检查localStorage
                 try {

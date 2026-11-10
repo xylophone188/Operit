@@ -117,7 +117,7 @@ internal object StructuredToolCallBridge {
                 "history_end" -> "后续对话历史已到达，但未返回执行结果"
                 else -> "调用在未返回执行结果时结束"
             }
-        return "工具结果缺失：$toolLabel $detail。这不是用户取消。"
+        return "工具结果缺失：$toolLabel $detail。未获执行确认。"
     }
 
     fun buildToolsJson(toolPrompts: List<ToolPrompt>?): String? {
@@ -435,8 +435,10 @@ internal object StructuredToolCallBridge {
                             )
                         }
 
-                        flushOpenToolCallsAsUnmatched("tool_result_partial_batch")
+                        // Keep pending IDs across adjacent result turns; close them at a real
+                        // user/assistant boundary, or before trailing non-result text.
                         if (textContent.isNotBlank()) {
+                            flushOpenToolCallsAsUnmatched("tool_result_partial_batch")
                             messagesArray.put(
                                 JSONObject().apply {
                                     put("role", "user")

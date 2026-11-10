@@ -75,6 +75,9 @@ fun SettingsScreen(
                 }
         }
 
+        var showEcosystem by remember { mutableStateOf(false) }
+        if (showEcosystem) EcosystemSettingsDialog { showEcosystem = false }
+
         val hasBackgroundImage = LocalThemePreferenceSnapshot.current.useBackgroundImage
         
         val cardContainerColor = if (hasBackgroundImage) {
@@ -88,6 +91,9 @@ fun SettingsScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                         .verticalScroll(scrollState)
         ) {
+                Button(onClick = { showEcosystem = true }, modifier = Modifier.fillMaxWidth()) {
+                        Text("统一模型生态 · Provider / Combo / Workflow")
+                }
                 // ======= 账号 =======
                 SettingsSection(
                         title = stringResource(id = R.string.settings_section_account),
