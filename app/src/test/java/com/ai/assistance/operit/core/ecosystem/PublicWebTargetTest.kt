@@ -14,7 +14,7 @@ class PublicWebTargetTest {
         }
     }
     @Test fun literalUrlsCannotBypassDnsGuard() {
-        listOf("https://169.254.169.254/","https://10.0.0.5/","https://[::1]/","https://[fc00::1]/","http://example.com/","https://user:secret@example.com/","https://example.com:8443/").forEach {url ->
+        listOf("https://1.1.1.1./","https://1.2.3.4.5/","https://169.254.169.254/","https://10.0.0.5/","https://[::1]/","https://[fc00::1]/","http://example.com/","https://user:secret@example.com/","https://example.com:8443/").forEach {url ->
             try {PublicWebTarget.validateUrl(url.toHttpUrl());fail("unsafe URL accepted: $url")} catch(_:IllegalArgumentException) {}
         }
         PublicWebTarget.validateUrl("https://1.1.1.1/".toHttpUrl())

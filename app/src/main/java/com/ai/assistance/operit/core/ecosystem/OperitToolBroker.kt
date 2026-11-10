@@ -40,8 +40,12 @@ internal object PublicWebTarget {
     fun validateUrl(url:okhttp3.HttpUrl) {
         require(url.isHttps && url.username.isEmpty() && url.password.isEmpty() && url.port==443) {"public HTTPS only"}
         val host=url.host
-        if(host.contains(':') || host.all {it.isDigit() || it=='.'}) {
+        if(host.contains(':')) {
             require(allowed(InetAddress.getByName(host))) {"non-public IP literal blocked"}
+        } else if(host.all {it.isDigit() || it=='.'}) {
+            val parts=host.split('.')
+            require(parts.size==4 && parts.all {part->part.toIntOrNull()?.let {n->n in 0..255 && part==n.toString()} == true}) {"non-canonical numeric host"}
+            require(allowed(InetAddress.getByAddress(parts.map {it.toInt().toByte()}.toByteArray()))) {"non-public IP literal blocked"}
         }
     }
     fun resolve(host:String, resolver:Dns=Dns.SYSTEM):List<InetAddress> {

@@ -3,58 +3,64 @@ package com.ai.assistance.operit.core.ecosystem
 import android.content.Context
 import android.util.AtomicFile
 import java.io.File
+import java.io.FileNotFoundException
 import java.security.MessageDigest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-/** App-private immutable versions plus atomic active pointer. No code/APK installation surface. */
+/** App-private versions and active pointers share a process lock, including AtomicFile recovery. */
 class AndroidProposalRepository(context: Context) : ProposalRepository {
+    companion object { private val lock=Any() }
     private val root=File(context.noBackupFilesDir,"ecosystem/proposals").apply {mkdirs()}
     private val json=Json {encodeDefaults=true}
     private fun dir(kind:String):File {require(kind in setOf("prompt","skill","policy","config"));return File(root,kind).apply{mkdirs()}}
     private fun active(kind:String)=AtomicFile(File(dir(kind),"active.json"))
-    @Synchronized override fun currentDigest(kind:String):String {
-        val file=active(kind)
-        val bytes=try {file.readFully()} catch(_:java.io.FileNotFoundException) {byteArrayOf()}
-        return MessageDigest.getInstance("SHA-256").digest(bytes).joinToString(""){"%02x".format(it)}
+    private fun read(file:AtomicFile):ByteArray? = try {file.readFully()} catch(_:FileNotFoundException) {null}
+    override fun currentDigest(kind:String):String = synchronized(lock) {
+        MessageDigest.getInstance("SHA-256").digest(read(active(kind)) ?: byteArrayOf()).joinToString(""){"%02x".format(it)}
     }
-    @Synchronized fun current(kind:String):EvolutionProposal? = active(kind).let {
-        try {json.decodeFromString<EvolutionProposal>(it.readFully().toString(Charsets.UTF_8))} catch(_:java.io.FileNotFoundException) {null}
+    fun current(kind:String):EvolutionProposal? = synchronized(lock) {
+        read(active(kind))?.let {json.decodeFromString<EvolutionProposal>(it.toString(Charsets.UTF_8))}
     }
-    @Synchronized override fun installVersion(proposal:EvolutionProposal) {
+    override fun installVersion(proposal:EvolutionProposal):Unit = synchronized(lock) {
         require(proposal.version>0)
         val bytes=json.encodeToString(proposal).toByteArray()
-        if(current(proposal.kind)==proposal) return // Approved transaction already committed.
+        if(current(proposal.kind)==proposal) return@synchronized
         require(currentDigest(proposal.kind)==proposal.baseDigest){"proposal base changed"}
         val directory=dir(proposal.kind)
-        val version=File(directory,"${proposal.version}.json")
-        if(version.exists()) {
-            // Recover a crash between archive write and active-pointer update, not a conflicting version.
-            check(version.readBytes().contentEquals(bytes)){"version content differs"}
+        val archive=AtomicFile(File(directory,"${proposal.version}.json"))
+        val existing=read(archive)
+        if(existing!=null) {
+            check(existing.contentEquals(bytes)){"version content differs"}
         } else {
-            val latest=directory.listFiles().orEmpty().mapNotNull {it.name.removeSuffix(".json").toIntOrNull()}.maxOrNull() ?: 0
+            val latest=directory.listFiles().orEmpty().mapNotNull {it.name.removeSuffix(".bak").removeSuffix(".json").toIntOrNull()}.maxOrNull() ?: 0
             require(proposal.version>latest){"version must increase"}
-            val archive=AtomicFile(version); val stream=archive.startWrite()
-            try{stream.write(bytes);archive.finishWrite(stream)}catch(e:Exception){archive.failWrite(stream);throw e}
+            write(archive,bytes)
         }
-        setActive(proposal.kind,bytes)
+        write(active(proposal.kind),bytes)
     }
-    @Synchronized override fun rollback(kind:String,version:Int) {
+    override fun rollback(kind:String,version:Int):Unit = synchronized(lock) {
         require(version>0)
-        val file=File(dir(kind),"$version.json")
-        require(file.isFile){"unknown version"}
-        val proposal=json.decodeFromString<EvolutionProposal>(file.readText())
+        val bytes=read(AtomicFile(File(dir(kind),"$version.json"))) ?: error("unknown version")
+        val proposal=json.decodeFromString<EvolutionProposal>(bytes.toString(Charsets.UTF_8))
         require(proposal.kind==kind && proposal.version==version)
-        setActive(kind,file.readBytes())
+        write(active(kind),bytes)
     }
-    private fun setActive(kind:String,bytes:ByteArray){val file=active(kind);val output=file.startWrite();try{output.write(bytes);file.finishWrite(output)}catch(e:Exception){file.failWrite(output);throw e}}
+    private fun write(file:AtomicFile,bytes:ByteArray) {
+        val stream=file.startWrite()
+        try{stream.write(bytes);file.finishWrite(stream)}catch(e:Exception){file.failWrite(stream);throw e}
+    }
 }
 
 class ConfigurationProposalSandbox : ProposalSandbox {
     override suspend fun validate(proposal:EvolutionProposal):Result<Unit> = attempt {
         require(proposal.content.toByteArray().size<=256_000){"proposal too large"}
         require(!proposal.content.contains('\u0000'))
-        if(proposal.kind=="config") ProviderRegistry.validate(Json.decodeFromString<ProviderRegistrySnapshot>(proposal.content))
+        if(proposal.kind=="config") {
+            val config=Json.decodeFromString<ProviderRegistrySnapshot>(proposal.content)
+            require(config.providers.all {it.existingConfigId==null && it.authProfiles.all {a->a.secretRef==null}}) {"proposal cannot carry credential authority"}
+            ProviderRegistry.validate(config)
+        }
         require(!proposal.content.contains(Regex("(?i)BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY|Bearer\\s+[A-Za-z0-9._-]{20,}"))) {"secret material forbidden"}
     }
 }
