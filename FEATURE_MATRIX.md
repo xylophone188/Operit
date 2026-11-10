@@ -40,8 +40,8 @@ PASS below means deterministic local scope only, never whole-task acceptance.
 | Ordinary Combo | ordered members, member timeout/retry, circuit breaker, health state | TESTED; parent cancellation propagates; total deadline separate from per-attempt deadline |
 | Auto Combo | weight × smoothed success ratio / latency factor | PARTIAL; not full OmniRoute 16-factor scoring, no quota/cost/context/experience integration |
 | Agent workflow | primary + parallel Verification/Review, original-task + candidate JSON handoff, attempt budget, explicit error results | TESTED; Summary/subagent multi-mode orchestration and actual output-token budget not complete |
-| Evolution | allowed proposal kinds only; immutable versions + atomic pointer; base hash concurrency check; explicit dialog approval + validation + rollback | PARTIAL; versioned proposal storage works, active prompt/skill consumption and code-to-Git-PR proposal flow are not implemented |
-| ToolBroker | OperitToolBroker reuses existing web visit, search URL and untrusted-data label, bearer redaction | PARTIAL; gateway protocol unification, comprehensive injection handling and DNS/redirect SSRF prevention not verified |
+| Evolution | allowed proposal kinds only; immutable versions + atomic pointer; base hash concurrency check; explicit dialog approval + validation + rollback | PARTIAL; approved prompt is frozen into new workflow system context; monotonic archive/crash recovery implemented; skill/policy/config activation and code-to-Git-PR flow remain incomplete |
+| ToolBroker | OperitToolBroker reuses installed OkHttp/Jsoup; connect-time public DNS guard, no proxy/cookies/redirects, bounded body, untrusted-data label | PARTIAL; public-target DNS fixtures added; gateway protocol unification and comprehensive injection handling remain incomplete |
 | SecretStore | Android Keystore AES-GCM, checked commit, backup/transfer exclusions | COMPILED; physical Keystore instrumentation still BLOCKED by missing device |
 | Codex adapter | OperitModelInvoker routes existingConfigId through existing provider implementation; native OAuth remains existing app UI | PARTIAL; no new multi-profile OAuth import and no actual Codex smoke |
 | AGY adapters | seven AdapterMode identities; REST implemented through existing provider; CLI/ACP/MCP/Direct explicitly rejected with PC gateway requirement | PARTIAL; NOT five implemented native adapters; unsupported modes are not counted as completed features |
@@ -49,10 +49,10 @@ PASS below means deterministic local scope only, never whole-task acceptance.
 | Functional UI | all eight function→Combo mappings | IMPLEMENTED |
 | Combo UI | ordinary/auto editor, weight, timeout, drag fallback order using existing Reorderable dependency | IMPLEMENTED; retries/total timeout editable through validated advanced JSON |
 | Snapshot isolation | detached provider snapshot and copied existing model configs at start | PARTIAL; primary credential values frozen; existing app multi-key pools and OAuth refresh state may still be consulted at runtime |
-| Tests | full app:testDebugUnitTest passed at prior snapshot; 1341 tests, 0 failed, 0 errors, 6 skipped; 13 ecosystem tests after added credential authority regressions | PASS at recorded source snapshot; final source must be rechecked after subsequent edits |
+| Tests | full app:testDebugUnitTest passed at prior snapshot; 1341 tests, 0 failed, 0 errors, 6 skipped; ecosystem routing/credential fixtures plus public DNS/rebinding fixtures | PASS at recorded source snapshot; final source must be rechecked after subsequent edits |
 | Security | gitleaks raw scan found legacy hardcoded WebView token; removed plus sensitive logging. Triaged scan zero findings with exact public fixture/path allowlists | PASS text/source scope; artifact and final diff verification separate |
 | Build | full Debug build exercised on PC incl. JNI/avatars, no removal of original avatar features | PASS debug; final commit-aligned artifact manifest external to avoid self-referential hashes |
-| H2 audit | Sonnet 5.5 independent conversation dd759f99-4d98-487f-a17f-a1be20535341 returned actionable findings; credential fixes applied and follow-up running | REVIEWED, final audit pending |
+| H2 audit | Sonnet 5.5 independent conversation dd759f99-4d98-487f-a17f-a1be20535341 returned actionable findings; credential fixes applied and follow-up running | REVIEWED; follow-up returned FAIL; latest remediation not yet accepted |
 | GitHub push | upstream AAswordman/Operit push denied; authenticated user's fork xylophone188/Operit created and read back with push permission | PENDING integration push/read-back; remote fork permission verified |
 
 ## User-facing entry

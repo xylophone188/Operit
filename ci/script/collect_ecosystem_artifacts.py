@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a local evidence bundle; never copies credentials or private baseline patches."""
+"""Collect artifacts only from an attested successful build; no credentials are copied."""
 import argparse
 import hashlib
 import json
@@ -10,27 +10,39 @@ import xml.etree.ElementTree as ET
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--destination', required=True)
+parser.add_argument('--build-attestation', required=True)
 args = parser.parse_args()
 repo = Path(__file__).resolve().parents[2]
 dest = Path(args.destination).expanduser().resolve()
-dest.mkdir(parents=True, exist_ok=True)
 commit = subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD'], text=True).strip()
-tracked_dirty = subprocess.check_output(['git', '-C', str(repo), 'status', '--porcelain', '--untracked-files=no'], text=True).strip()
-if tracked_dirty:
+if subprocess.check_output(['git', '-C', str(repo), 'status', '--porcelain', '--untracked-files=no'], text=True).strip():
     raise SystemExit('Refusing artifact attribution: tracked source is dirty')
-manifest = {'task_id': 'operit-cross-device-20261110-1330', 'source_commit': commit,
-            'source_url': 'https://github.com/xylophone188/Operit/commit/' + commit, 'artifacts': []}
-for variant in ('debug', 'release'):
-    for source in sorted((repo / 'app/build/outputs/apk' / variant).glob('*.apk')):
-        target = dest / ('operit-' + commit[:12] + '-' + variant + '.apk')
-        shutil.copy2(source, target)
-        digest = hashlib.sha256(target.read_bytes()).hexdigest()
-        assert digest == hashlib.sha256(source.read_bytes()).hexdigest()
-        manifest['artifacts'].append({'variant': variant, 'path': str(target), 'bytes': target.stat().st_size, 'sha256': digest})
+attestation = json.loads(Path(args.build_attestation).read_text())
+if attestation['source_commit'] != commit or attestation['exit_code'] != 0:
+    raise SystemExit('Build attestation does not match successful HEAD build')
+
+def digest(path):
+    with path.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
 suites = [ET.parse(p).getroot() for p in (repo / 'app/build/test-results/testDebugUnitTest').glob('TEST-*.xml')]
-manifest['tests'] = {key: sum(int(s.attrib.get(key, 0)) for s in suites) for key in ('tests', 'failures', 'errors', 'skipped')}
-if not manifest['artifacts'] or manifest['tests']['failures'] or manifest['tests']['errors']:
-    raise SystemExit('Missing artifacts or failing tests')
-(repo / '.hermes/tasks/operit-cross-device-20261110-1330').mkdir(parents=True, exist_ok=True)
+tests = {key: sum(int(s.attrib.get(key, 0)) for s in suites) for key in ('tests', 'failures', 'errors', 'skipped')}
+if not tests['tests'] or tests['failures'] or tests['errors']:
+    raise SystemExit('Missing tests or failing tests')
+manifest = {'task_id': 'operit-cross-device-20261110-1330', 'source_commit': commit,
+            'source_url': 'https://github.com/xylophone188/Operit/commit/' + commit,
+            'build': attestation, 'tests': tests, 'artifacts': []}
+dest.mkdir(parents=True, exist_ok=True)
+for item in attestation['artifacts']:
+    source = repo / item['source']
+    if digest(source) != item['sha256']:
+        raise SystemExit('Artifact changed after build attestation')
+    target = dest / ('operit-' + commit[:12] + '-' + item['variant'] + '-' + source.name)
+    shutil.copy2(source, target)
+    if digest(target) != item['sha256']:
+        raise SystemExit('Copy checksum mismatch')
+    manifest['artifacts'].append({**item, 'path': str(target), 'bytes': target.stat().st_size})
+if not manifest['artifacts']:
+    raise SystemExit('Missing artifacts')
 (dest / 'artifact-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
 print(json.dumps(manifest, indent=2))

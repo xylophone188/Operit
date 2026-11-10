@@ -16,7 +16,7 @@ import org.json.JSONObject
 class AndroidProviderStateStore(context: Context) : ProviderStateStore {
     private val file = AtomicFile(File(context.noBackupFilesDir,"ecosystem/registry.json").apply { parentFile?.mkdirs() })
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
-    @Synchronized override fun read(): ProviderRegistrySnapshot = if (!file.baseFile.exists()) ProviderRegistrySnapshot() else json.decodeFromString(file.readFully().toString(Charsets.UTF_8))
+    @Synchronized override fun read(): ProviderRegistrySnapshot = try {json.decodeFromString(file.readFully().toString(Charsets.UTF_8))} catch(_:java.io.FileNotFoundException) {ProviderRegistrySnapshot()}
     @Synchronized override fun write(snapshot: ProviderRegistrySnapshot) {
         val output = file.startWrite()
         try { output.write(json.encodeToString(snapshot).toByteArray()); file.finishWrite(output) }
@@ -31,6 +31,7 @@ class OperitModelInvoker(
     private val secretStore: SecretStore,
     private val configs: ModelConfigManager = ModelConfigManager(context),
     private val frozenConfigs: Map<String, ModelConfigData> = emptyMap(),
+    private val approvedPrompt:String? = null,
 ) : ModelInvoker {
     override suspend fun invoke(member: ComboMember, request: ModelRequest): Result<ModelResponse> = attempt {
         val p = snapshot.providers.single { it.id == member.providerId && it.enabled }
@@ -57,9 +58,10 @@ class OperitModelInvoker(
             }.toString())
         val service = AIServiceFactory.createService(config,configs,context)
         val started = android.os.SystemClock.elapsedRealtime()
+        val history=listOfNotNull(approvedPrompt?.let {PromptTurn(PromptTurnKind.SYSTEM,it)},PromptTurn(PromptTurnKind.USER,request.prompt))
         try {
             val result = StringBuilder()
-            service.sendMessage(context,chatHistory=listOf(PromptTurn(PromptTurnKind.USER,request.prompt)),modelParameters=listOf(com.ai.assistance.operit.data.model.ModelParameter("max_tokens","max_tokens","max_tokens",defaultValue=request.maxOutputTokens,currentValue=request.maxOutputTokens,isEnabled=true,valueType=com.ai.assistance.operit.data.model.ParameterValueType.INT)),stream=true)
+            service.sendMessage(context,chatHistory=history,modelParameters=listOf(com.ai.assistance.operit.data.model.ModelParameter("max_tokens","max_tokens","max_tokens",defaultValue=request.maxOutputTokens,currentValue=request.maxOutputTokens,isEnabled=true,valueType=com.ai.assistance.operit.data.model.ParameterValueType.INT)),stream=true)
                 .collect { result.append(it) }
             require(result.isNotBlank()) { "empty upstream stream" }
             ModelResponse(result.toString(),p.id,member.modelId,android.os.SystemClock.elapsedRealtime()-started,service.outputTokenCount)
@@ -92,7 +94,7 @@ class OperitEcosystemRuntime(context: Context) {
             override fun put(ref:String,value:String)=error("immutable task credentials")
             override fun remove(ref:String)=error("immutable task credentials")
         }
-        AgentWorkflowEngine(ComboEngine(OperitModelInvoker(app,snapshot,frozenSecrets,manager,frozen),states=sharedHealth),maxBudget=24).run(request,enabled,verify,review,roles).getOrThrow()
+        AgentWorkflowEngine(ComboEngine(OperitModelInvoker(app,snapshot,frozenSecrets,manager,frozen,AndroidProposalRepository(app).current("prompt")?.content),states=sharedHealth),maxBudget=24).run(request,enabled,verify,review,roles).getOrThrow()
     }
     suspend fun test(provider: ProviderDescriptor): Result<ModelResponse> = attempt {
         ProviderRegistry.validate(ProviderRegistrySnapshot(providers=listOf(provider)))

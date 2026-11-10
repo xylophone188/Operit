@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
     var content by remember {mutableStateOf("")}
     var message by remember {mutableStateOf("")}
     var pending by remember {mutableStateOf<EvolutionProposal?>(null)}
-    Text("受控进化：版本化提案 → 验证 → 明确审批；不修改 APK/代码")
+    Text("受控进化：审批 prompt 将用于新工作流；skill / policy / config 仅版本化存档，尚不激活；不修改 APK/代码")
     OutlinedTextField(kind,{kind=it},label={Text("prompt / skill / policy / config")})
     OutlinedTextField(version,{version=it},label={Text("版本号 / 回滚目标版本")})
     OutlinedTextField(content,{content=it},label={Text("提案内容")},minLines=3)
@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
     }
     pending?.let { proposal ->
         AlertDialog(onDismissRequest={pending=null},title={Text("审批 ${proposal.kind} v${proposal.version}")},text={Text(proposal.content.take(4000))},confirmButton={TextButton(onClick={scope.launch{
-            message=EvolutionEngine(ConfigurationProposalSandbox(),ProposalApproval{true},repo).apply(proposal).fold({"提案已版本化应用；不会修改应用本体"},{"拒绝：${it.javaClass.simpleName}"})
+            message=EvolutionEngine(ConfigurationProposalSandbox(),ProposalApproval{true},repo).apply(proposal).fold({"提案已存档；仅 prompt 会用于新工作流，不修改应用本体"},{"拒绝：${it.javaClass.simpleName}"})
             pending=null
         }}){Text("批准并验证应用")}},dismissButton={TextButton(onClick={pending=null}){Text("拒绝")}})
     }

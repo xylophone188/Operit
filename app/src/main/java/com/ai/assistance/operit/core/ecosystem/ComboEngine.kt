@@ -23,7 +23,7 @@ class ComboEngine(
     }
     suspend fun execute(combo: ComboDefinition, request: ModelRequest): Result<ModelResponse> = try {
         withTimeout(combo.totalTimeoutMs) { executeMembers(combo,request) }
-    } catch (e: TimeoutCancellationException) { currentCoroutineContext().ensureActive(); Result.failure(e) }
+    } catch (e: TimeoutCancellationException) { currentCoroutineContext().ensureActive(); Result.failure(java.io.IOException("model deadline exceeded",e)) }
 
     private suspend fun executeMembers(combo: ComboDefinition, request: ModelRequest): Result<ModelResponse> {
         var last: Result<ModelResponse> = Result.failure(IllegalStateException("no healthy combo candidate"))
@@ -34,7 +34,7 @@ class ComboEngine(
                 if (health(m.providerId).isOpen(nowMs())) return@repeat
                 val start = nowMs()
                 last = try { attempt { withTimeout(m.timeoutMs) { invoker.invoke(m,request).getOrThrow() } } }
-                catch (e: TimeoutCancellationException) { currentCoroutineContext().ensureActive(); Result.failure(e) }
+                catch (e: TimeoutCancellationException) { currentCoroutineContext().ensureActive(); Result.failure(java.io.IOException("model deadline exceeded",e)) }
                 val elapsed = (nowMs()-start).coerceAtLeast(0)
                 states.compute(m.providerId) { _, old ->
                     val h = old ?: HealthState()

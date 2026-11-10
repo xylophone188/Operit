@@ -18,10 +18,10 @@ Applied from real review:
 - Share health between workflow runs; retain structured cancellation.
 
 Remaining independently identified defects / acceptance limitations:
-- ToolBroker redirect and DNS-rebinding SSRF prevention incomplete; do not wire to unattended agents or regard as hardened remote broker.
+- ToolBroker now uses OkHttp connect-time public DNS validation, no proxy or redirects, bounded text and cancellation. Regression fixtures added; remote gateway contracts remain unimplemented.
 - Header value arbitrary-secret classification cannot be perfect; UI free-form provider metadata is user-authored, not trusted secret transport.
 - Full model-level health, nonretryable credential classification, decay and telemetry invalidation not implemented.
-- Evolution approval/rollback does not yet activate application prompt/skill policy; version archive idempotency and monotonic version enforcement need follow-up. No APK/code mutation implemented.
+- Approved prompt is consumed by new workflows with task-snapshot semantics; monotonic versions and archive recovery added. Skill/policy/config activation and phone verification remain incomplete. No APK/code mutation implemented.
 - Existing multi-key profile credential pools may still consult existing app stores; full token/session snapshot semantics not verified.
 - No phone test, full-window final artifact review or full five upstream ports accepted.
 

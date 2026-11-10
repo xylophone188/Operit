@@ -7,6 +7,7 @@ Selection:
 - Reuse kotlinx.coroutines `withTimeout`, cancellation propagation and structured `async` for bounded workflow checks.
 - Reuse Android Keystore AES-GCM and AtomicFile; no new dependency.
 - Reuse existing Calvin-LL Reorderable for Combo member ordering.
+- Web guard: reuse installed OkHttp 4.12 Dns and redirect switches, Jsoup 1.16.2; no dependency added. Sources: https://square.github.io/okhttp/4.x/okhttp/okhttp3/-dns/ and https://github.com/vercel-labs/guarded-fetch . Do not resolve once and then use a WebView that resolves independently. Redirects disabled rather than inventing a redirect framework. Explicit Proxy.NO_PROXY prevents proxy DNS bypass.
 - External sources searched: GitHub Android/Kotlin provider routing, Android Keystore storage, Kotlin agent timeout/circuit breakers; OmniRoute pinned release docs inspected locally.
 
 Port boundaries:

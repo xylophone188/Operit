@@ -15,16 +15,28 @@ class AndroidProposalRepository(context: Context) : ProposalRepository {
     private fun active(kind:String)=AtomicFile(File(dir(kind),"active.json"))
     @Synchronized override fun currentDigest(kind:String):String {
         val file=active(kind)
-        val bytes=if(file.baseFile.exists())file.readFully() else byteArrayOf()
+        val bytes=try {file.readFully()} catch(_:java.io.FileNotFoundException) {byteArrayOf()}
         return MessageDigest.getInstance("SHA-256").digest(bytes).joinToString(""){"%02x".format(it)}
     }
+    @Synchronized fun current(kind:String):EvolutionProposal? = active(kind).let {
+        try {json.decodeFromString<EvolutionProposal>(it.readFully().toString(Charsets.UTF_8))} catch(_:java.io.FileNotFoundException) {null}
+    }
     @Synchronized override fun installVersion(proposal:EvolutionProposal) {
-        require(currentDigest(proposal.kind)==proposal.baseDigest){"proposal base changed"}
-        val version=File(dir(proposal.kind),"${proposal.version}.json")
-        check(!version.exists()){ "version exists" }
+        require(proposal.version>0)
         val bytes=json.encodeToString(proposal).toByteArray()
-        val archive=AtomicFile(version); val stream=archive.startWrite()
-        try{stream.write(bytes);archive.finishWrite(stream)}catch(e:Exception){archive.failWrite(stream);throw e}
+        if(current(proposal.kind)==proposal) return // Approved transaction already committed.
+        require(currentDigest(proposal.kind)==proposal.baseDigest){"proposal base changed"}
+        val directory=dir(proposal.kind)
+        val version=File(directory,"${proposal.version}.json")
+        if(version.exists()) {
+            // Recover a crash between archive write and active-pointer update, not a conflicting version.
+            check(version.readBytes().contentEquals(bytes)){"version content differs"}
+        } else {
+            val latest=directory.listFiles().orEmpty().mapNotNull {it.name.removeSuffix(".json").toIntOrNull()}.maxOrNull() ?: 0
+            require(proposal.version>latest){"version must increase"}
+            val archive=AtomicFile(version); val stream=archive.startWrite()
+            try{stream.write(bytes);archive.finishWrite(stream)}catch(e:Exception){archive.failWrite(stream);throw e}
+        }
         setActive(proposal.kind,bytes)
     }
     @Synchronized override fun rollback(kind:String,version:Int) {

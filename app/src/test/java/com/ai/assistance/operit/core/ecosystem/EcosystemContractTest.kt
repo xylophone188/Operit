@@ -9,6 +9,17 @@ class EcosystemContractTest {
     private fun member(id:String="a",timeout:Long=1000,retries:Int=0)=ComboMember(id,"fixture",timeoutMs=timeout,maxRetries=retries)
     private fun response(m:ComboMember)=ModelResponse("golden",m.providerId,m.modelId,1)
 
+    @Test fun workflowTimeoutIsFailureButParentCancellationPropagates() = runBlocking {
+        val engine=ComboEngine(ModelInvoker {_,_->delay(500);Result.success(response(member()))})
+        val memberFailure=AgentWorkflowEngine(engine).run(request,ComboDefinition("member",listOf(member(timeout=10))),false,false)
+        assertTrue(memberFailure.isFailure)
+        assertFalse(memberFailure.exceptionOrNull() is CancellationException)
+        val totalFailure=AgentWorkflowEngine(engine).run(request,ComboDefinition("total",listOf(member()),totalTimeoutMs=10),false,false)
+        assertTrue(totalFailure.isFailure)
+        assertFalse(totalFailure.exceptionOrNull() is CancellationException)
+        val job=launch {AgentWorkflowEngine(engine).run(request,ComboDefinition("parent",listOf(member())),false,false);fail("cancel swallowed")}
+        delay(20);job.cancelAndJoin();assertTrue(job.isCancelled)
+    }
     @Test fun fallbackPreservesOrderAndErrors() = runBlocking {
         val calls=mutableListOf<String>()
         val engine=ComboEngine(ModelInvoker {m,_->calls+=m.providerId;if(m.providerId=="a")Result.failure(IllegalStateException("upstream failure")) else Result.success(response(m))})
