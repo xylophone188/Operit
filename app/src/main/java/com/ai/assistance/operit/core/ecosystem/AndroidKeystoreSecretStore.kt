@@ -4,6 +4,7 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import androidx.core.content.edit
 import java.nio.charset.StandardCharsets
 import java.security.KeyStore
 import javax.crypto.Cipher
@@ -31,7 +32,7 @@ class AndroidKeystoreSecretStore(context: Context) : SecretStore {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply { init(Cipher.ENCRYPT_MODE, key()) }
         cipher.updateAAD(ref.toByteArray(StandardCharsets.UTF_8))
         val payload = cipher.iv + cipher.doFinal(value.toByteArray(StandardCharsets.UTF_8))
-        check(prefs.edit().putString(ref, Base64.encodeToString(payload, Base64.NO_WRAP)).commit()) { "secret persistence failed" }
+        prefs.edit(commit = true) { putString(ref, Base64.encodeToString(payload, Base64.NO_WRAP)) }
     }
 
     override fun get(ref: String): String? = prefs.getString(ref, null)?.let { encoded ->
@@ -44,5 +45,5 @@ class AndroidKeystoreSecretStore(context: Context) : SecretStore {
         }
     }
 
-    override fun remove(ref: String) { check(prefs.edit().remove(ref).commit()) { "secret removal failed" } }
+    override fun remove(ref: String) { prefs.edit(commit = true) { remove(ref) } }
 }

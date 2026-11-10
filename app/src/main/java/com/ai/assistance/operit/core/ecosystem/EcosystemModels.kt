@@ -3,7 +3,15 @@ package com.ai.assistance.operit.core.ecosystem
 import kotlinx.serialization.Serializable
 
 @Serializable enum class ProviderCapability { CHAT, STREAMING, TOOLS, RESPONSES, SSE, LOCAL, REMOTE }
-@Serializable data class AuthProfile(val id: String, val label: String, val secretRef: String? = null, val organizationId: String? = null, val projectId: String? = null)
+@Serializable enum class AuthType { BEARER, OAUTH_REFRESH, CUSTOM_HEADERS }
+@Serializable enum class ExecutionLocality { DIRECT_PHONE, PC_BRIDGE, TERMUX_CLI, EXPERIMENTAL }
+@Serializable data class AuthProfile(
+    val id: String, val label: String, val secretRef: String? = null,
+    val organizationId: String? = null, val projectId: String? = null,
+    val type: AuthType = AuthType.BEARER, val customHeaders: Map<String, String> = emptyMap(),
+    val tokenUrl: String = "https://oauth2.googleapis.com/token", val clientId: String = "",
+    val clientSecretRef: String? = null,
+)
 @Serializable data class ModelDescriptor(val id: String, val displayName: String = id, val capabilities: Set<ProviderCapability> = setOf(ProviderCapability.CHAT), val contextWindow: Int = 0)
 @Serializable enum class AdapterMode { OPENAI_REST, CODEX_RESPONSES, AGY_REST, AGY_CLI, AGY_ACP, AGY_MCP, AGY_DIRECT }
 @Serializable data class ProviderDescriptor(
@@ -15,6 +23,10 @@ import kotlinx.serialization.Serializable
     val enabled: Boolean = true, val priority: Int = 0,
     val mode: AdapterMode = AdapterMode.OPENAI_REST,
     val existingConfigId: String? = null,
+    val locality: ExecutionLocality = ExecutionLocality.DIRECT_PHONE,
+    val bridgeTool: String = "ask_antigravity",
+    val cliExecutable: String = "ask-agy",
+    val activeAuthProfileId: String? = null,
 )
 @Serializable enum class WorkFunction { PLANNING, RESEARCH, CODING, EXECUTION, VERIFICATION, REVIEW, SUMMARIZATION, EVOLUTION }
 @Serializable data class ComboMember(val providerId: String, val modelId: String, val weight: Double = 1.0, val timeoutMs: Long = 15_000, val maxRetries: Int = 0)
@@ -27,7 +39,7 @@ import kotlinx.serialization.Serializable
 )
 data class RouteRequest(val function: WorkFunction, val requiredCapabilities: Set<ProviderCapability> = setOf(ProviderCapability.CHAT), val preferredModel: String? = null)
 data class RouteDecision(val providerId: String, val modelId: String, val score: Double, val reason: String)
-data class HealthState(val successes: Long = 0, val failures: Long = 0, val consecutiveFailures: Int = 0, val openedUntilMs: Long = 0, val latencyMs: Long = 0) { fun isOpen(nowMs: Long) = openedUntilMs > nowMs }
+data class HealthState(val successes: Long = 0, val failures: Long = 0, val consecutiveFailures: Int = 0, val openedUntilMs: Long = 0, val latencyMs: Long = 0, val cooldownUntilMs: Long = 0) { fun isOpen(nowMs: Long) = openedUntilMs > nowMs || cooldownUntilMs > nowMs }
 data class ModelRequest(val prompt: String, val function: WorkFunction, val maxOutputTokens: Int = 1024)
 data class ModelResponse(val text: String, val providerId: String, val modelId: String, val latencyMs: Long, val outputTokens: Long = 0)
 fun interface ModelInvoker { suspend fun invoke(member: ComboMember, request: ModelRequest): Result<ModelResponse> }

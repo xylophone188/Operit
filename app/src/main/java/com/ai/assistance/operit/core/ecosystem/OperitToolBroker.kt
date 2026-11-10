@@ -38,7 +38,7 @@ internal object PublicWebTarget {
         }
     }
     fun validateUrl(url:okhttp3.HttpUrl) {
-        require(url.isHttps && url.username.isEmpty() && url.password.isEmpty() && url.port==443) {"public HTTPS only"}
+        require(url.isHttps && url.username.isEmpty() && url.password.isEmpty() && url.port==443 && url.fragment==null) {"public HTTPS only"}
         val host=url.host
         if(host.contains(':')) {
             require(allowed(InetAddress.getByName(host))) {"non-public IP literal blocked"}

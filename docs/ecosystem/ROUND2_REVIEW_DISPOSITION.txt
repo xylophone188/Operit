@@ -1,0 +1,23 @@
+Operit R2 semantic review disposition
+
+Prior Sonnet snapshot contained valid findings and explicit false positives. No blanket PASS inferred.
+
+Accepted / implemented:
+- MCP HTTP initialize, initialized notification, negotiated session ID header; ACP model forwarding.
+- OAuth refresh uses application/x-www-form-urlencoded and TLS, client secret only SecretStore.
+- Global Dream mutex, bounded outbox and bounded input batch, per-record persistence.
+- OV first write uses create; 409 uses replace at identical content-derived URI. Verified actual server create/read separately.
+- Full-workflow wall-clock deadline includes parallel verification/review; hard per-attempt token/step reservation in Combo before admission, including retries.
+- Approved config cannot acquire credential refs or redirect attached credentials.
+- Shared HTTP client, shared remote tool TTL cache/token bucket.
+- CLI tail output bound; Android selected permission executor reuse, argument quoting, no silent privilege escalation.
+- Functional routing binds exact provider+model, not every model owned by that provider.
+
+Rejected with task/source evidence:
+- Splitting networkRetries vs verifyRetries contradicts explicit requirement that VERIFYING and FAILED share maxRetries<=3. Per-child retries is already inside async closure, not shared across roles.
+- Calling DREAM a blocking chat mode contradicts background-memory specification.
+- Treating malformed SSE JSON exception propagation as silent success is false: exception becomes failed Result; no synthetic output.
+- Demanding network access to pc-vps or mobile install from PC conflicts with U1 boundary.
+- No requirement to bypass Android sandbox or grant root silently; TERMUX_CLI consumes the user's selected existing executor permission.
+
+Remaining source follow-up and independent H2 final evidence review are persisted separately. Review is not live Android validation.

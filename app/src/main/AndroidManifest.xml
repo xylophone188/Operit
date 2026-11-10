@@ -71,6 +71,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <queries>
+        <package android:name="com.termux" />
         <!-- 允许查询和绑定到无障碍服务提供者应用 -->
         <package android:name="com.ai.assistance.operit.provider" />
     </queries>
@@ -109,9 +110,6 @@
             android:name="com.google.firebase.ml.kit.analytics.collection.enabled"
             android:value="false" />
 
-        <activity 
-            android:name="live.pw.renderX.LatexView"
-            tools:node="remove" />
 
         <activity
             android:name=".core.tools.defaultTool.websession.browser.WebSessionPermissionRequestActivity"

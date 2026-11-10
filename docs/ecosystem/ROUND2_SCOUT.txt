@@ -1,0 +1,30 @@
+Operit Round 2 — Scout Card / protocol selection
+Baseline: fb8aa7756ead02d05fc0b4be5055b52a5c4d6d7c
+
+Search-first sources:
+- https://github.com/volcengine/OpenViking
+- https://modelcontextprotocol.io/specification/2025-03-26/basic/transports
+- https://agentclientprotocol.com/protocol/prompt-turn
+- https://github.com/Resderx/RAC (evaluated; new alpha KMP dependency unnecessary)
+
+Reuse decision:
+- Existing OkHttp 4.12 / okio for TLS, HTTP cancellation, DNS, bounded body and total/read deadlines; Jsoup for local reader extraction.
+- Existing Kotlin coroutines/serialization for parallel cancellation and wire DTOs.
+- Existing Android WorkManager for durable idle Dream scheduling; no custom polling daemon.
+- Existing provider registry, Android Keystore and AtomicFile for settings/evolution.
+- Existing AIServiceFactory retained for previously configured profiles. Native protocol adapters are bounded application translation glue; no custom cryptography/OAuth signature/retry implementation.
+- Java ProcessBuilder argument vector only for opt-in Termux CLI; no shell interpolation.
+- Standard OAuth form-encoded refresh-token request, no embedded client secret.
+- Standard JSON-RPC ACP/MCP bridge. MCP tools/call supports a pre-initialized HTTP bridge; full stateful Streamable HTTP handshake remains subject to audit.
+
+Local reference sources read:
+/home/melody/.local/src/agy-unified/lib/agy-direct.mjs
+/home/melody/.local/src/agy-unified/lib/agy-translate.mjs
+/home/melody/.local/src/agy-unified/lib/agy-acp.mjs
+/home/melody/.local/src/agy-unified/bin/ask-agy
+/home/melody/.local/lib/agentbox-gateway/index.mjs (/v1/search, /v1/web/fetch forwarding)
+http://127.0.0.1:1933/openapi.json (actual WriteContentRequest and SearchRequest schema)
+
+Dependency/platform impact: no new packages; existing Android minSdk/JVM dependencies only.
+Deterministic gates: unit tests check total/member deadline separation, incomplete stream rejection, status propagation, cooldown, shared retries, cancellation, offline outbox, export redaction and applied/rollback consumption.
+Semantic gate: independent Sonnet source review plus final H2 artifact audit, persisted separately. No PASS claimed before both.

@@ -51,6 +51,12 @@ fun EcosystemSettingsDialog(onDismiss: () -> Unit) {
                 Row { Text(p.displayName,Modifier.weight(1f)); Switch(p.enabled,{ enabled -> runtime.registry.upsert(p.copy(enabled=enabled)); refresh() }) }
                 TextButton(enabled=!busy,onClick={ busy=true; scope.launch { try { result=withContext(Dispatchers.IO) { runtime.test(p).fold({"连通性：${it.latencyMs}ms"},{"连通性失败：${it.javaClass.simpleName}"}) } } finally { busy=false } } }) { Text("真实模型连通性测试") }
             }
+            EcosystemProviderEditor(runtime,snapshot) { refresh() }
+            EcosystemDreamEditor(runtime)
+            snapshot.combos.forEach { combo ->
+                Text("Combo ${combo.id}: auto=${combo.autoScore}, deadline=${combo.totalTimeoutMs}ms")
+                combo.members.forEach { member -> Text("${member.providerId}/${member.modelId}: ${runtime.health(member.providerId)}") }
+            }
             EcosystemComboEditor(snapshot) { combo ->
                 runtime.registry.replace(snapshot.copy(combos=snapshot.combos.filterNot { it.id==combo.id }+combo))
                 refresh()

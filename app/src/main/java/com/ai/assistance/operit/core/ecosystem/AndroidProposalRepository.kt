@@ -15,7 +15,10 @@ class AndroidProposalRepository(context: Context) : ProposalRepository {
     private val json=Json {encodeDefaults=true}
     private fun dir(kind:String):File {require(kind in setOf("prompt","skill","policy","config"));return File(root,kind).apply{mkdirs()}}
     private fun active(kind:String)=AtomicFile(File(dir(kind),"active.json"))
-    private fun read(file:AtomicFile):ByteArray? = try {file.readFully()} catch(_:FileNotFoundException) {null}
+    private fun read(file:AtomicFile):ByteArray? = try {file.readFully()} catch(_:FileNotFoundException) {
+        val backup=File(file.baseFile.path+".bak")
+        if(!backup.exists()) null else try {backup.readBytes().also {backup.delete()}} catch(_:Exception) {null}
+    }
     override fun currentDigest(kind:String):String = synchronized(lock) {
         MessageDigest.getInstance("SHA-256").digest(read(active(kind)) ?: byteArrayOf()).joinToString(""){"%02x".format(it)}
     }
