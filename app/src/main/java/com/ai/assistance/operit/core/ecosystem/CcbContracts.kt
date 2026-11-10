@@ -19,16 +19,19 @@ object SupervisorContract {
             77 -> return SupervisorStatus.BLOCKED
             124 -> return SupervisorStatus.TIMEOUT
         }
+        var structuredStatus: SupervisorStatus? = null
         jsonl.lineSequence().forEach { line ->
+            if (structuredStatus != null) return@forEach
             val event = runCatching { Json.parseToJsonElement(line).jsonObject }.getOrNull() ?: return@forEach
             if ((event["type"] as? JsonPrimitive)?.contentOrNull != "error") return@forEach
             val error = event["error"] as? JsonObject ?: event
-            when ((error["code"] as? JsonPrimitive)?.contentOrNull ?: (error["status"] as? JsonPrimitive)?.contentOrNull ?: (error["type"] as? JsonPrimitive)?.contentOrNull) {
-                "429", "rate_limit_exceeded", "RATE_LIMITED" -> return SupervisorStatus.RATE_LIMITED
-                "403", "permission_denied", "BLOCKED" -> return SupervisorStatus.BLOCKED
+            structuredStatus = when ((error["code"] as? JsonPrimitive)?.contentOrNull ?: (error["status"] as? JsonPrimitive)?.contentOrNull ?: (error["type"] as? JsonPrimitive)?.contentOrNull) {
+                "429", "rate_limit_exceeded", "RATE_LIMITED" -> SupervisorStatus.RATE_LIMITED
+                "403", "permission_denied", "BLOCKED" -> SupervisorStatus.BLOCKED
+                else -> null
             }
         }
-        return SupervisorStatus.FAILED
+        return structuredStatus ?: SupervisorStatus.FAILED
     }
 }
 
